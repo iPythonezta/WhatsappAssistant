@@ -1,9 +1,6 @@
 import venom from 'venom-bot';
 import {generateResponse, createEmptyChat, chatWithAI} from './GeminiHandler.js';
-
-
-const chattingWithIDs = new Set();
-const IDChats = new Map();
+import { listDir } from './tools.js';
 
 venom.create({
     session: 'hzs-test-bot',
@@ -15,54 +12,83 @@ venom.create({
     console.error('Error creating Venom client:', error);
 });
 
+const AIChats = new Object();
+const IgnoredConvos = new Set();
+
 const start = (client) => {
     console.log('Client created successfully!');
 
-    client.onMessage((message) => {
-        if (!message.body || message.body.trim() === '') return;
+    client.onMessage(async (message) => {
+        if (!message.body || message.body.trim() == '' || IgnoredConvos.has(message.from)) return;
 
         const trimmedBody = message.body.trim();
-
-        if (trimmedBody.startsWith('/startAiChat')) {
-            client.sendText(message.from, "You are now chatting with Huzaifa's AI assistant!");
-            chattingWithIDs.add(message.from);
-            console.log(`[AI START] Chat started with ${message.sender.pushname} (${message.shortName})`);
-            IDChats.set(message.from, createEmptyChat());
+        let response;
+        if (AIChats.hasOwnProperty(message.from)) {
+            const chat = AIChats[message.from];
+            response = await chatWithAI(chat, trimmedBody);
+        }
+        else {
+            const chat = createEmptyChat();
+            AIChats[message.from] = chat;
+            const firstMsg = `You are now chatting with ${message.sender.name}. \n ${trimmedBody}`;
+            response = await chatWithAI(chat, firstMsg);
         }
 
-        else if (trimmedBody.startsWith('/endAiChat')) {
-            client.sendText(message.from, "You have ended the AI chat.");
-            chattingWithIDs.delete(message.from);
-            console.log(`[AI END] Chat ended with ${message.sender.pushname} (${message.shortName})`);
-            IDChats.delete(message.from);
-        }
+        console.log("Response:", response);
 
-        else if (trimmedBody.startsWith('/AIrespond')) {
-            const response = generateResponse(trimmedBody);
-            console.log(`[AI COMMAND] /AIrespond triggered`);
-            Promise.resolve(response).then((res) => {
-                client.sendText(message.from, res);
-            });
-        }
+        response = response.replace("```json\n", "").replace("```", "");
 
-        else if (trimmedBody.startsWith('/help')) {
-            const helpMessage = 
-                `Available Commands:
-                \n/startAiChat - Start chatting with Huzaifa's AI assistant.
-                \n/endAiChat - End the AI chat session.
-                \n/AIrespond - Send a single message to the assistant and get a reply.
-                \n/help - Show this help message.`;
-            client.sendText(message.from, helpMessage);
-        }
+        console.log("Response after formatting:", response);
 
-        else if (chattingWithIDs.has(message.from)) {
-            console.log(`[AI MSG] ${message.sender.pushname} (${message.shortName}): ${trimmedBody}`);
-            const inputMessage = `Message From ${message.sender.pushname} - (${message.shortName}): ${trimmedBody}`;
-            const chat = IDChats.get(message.from);
-            const response = chatWithAI(chat, inputMessage);
-            Promise.resolve(response).then((res) => {
-                client.sendText(message.from, res);
-            });
+        let jsonResponse = JSON.parse(response);
+        let action = jsonResponse.action;
+        let returned = false;
+        while (!returned){
+            switch (action){
+                case "share_file":
+                    jsonResponse.file_paths.forEach(async (file_path)=>{
+                        await client.sendFile(
+                            message.from,
+                            file_path,
+                            file_path.split('/').pop(),
+                            ""
+                        )
+                    })
+
+                    returned = true;
+                    break;
+
+                case "get_file_paths":
+                    const filePaths = listDir("files_to_share");
+                    const chat = AIChats[message.from];
+                    response = await chatWithAI(chat, `Here are the files you can share:\n${filePaths.join('\n')}`);
+                    response = response.replace("```json\n", "").replace("```", "");
+                    jsonResponse = JSON.parse(response);
+                    action = jsonResponse.action;
+                    break;
+
+                case "answer":
+                    response = jsonResponse.answer;
+                    await client.sendText(message.from, response)
+                        .then(() => {
+                            console.log('Message sent successfully!');
+                        })
+                        .catch((error) => {
+                            console.error('Error sending message:', error);
+                        });
+                    returned = true;
+                    break;
+
+                case "ignore_convo":
+                    returned = true;
+                    break;
+
+                case "ignore_convo_hard":
+                    IgnoredConvos.add(message.from);
+                    delete AIChats[message.from];
+                    returned = true;
+                    break;
+            }
         }
     });
 

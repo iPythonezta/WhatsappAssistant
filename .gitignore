@@ -1,2 +1,4 @@
 prompt.txt
 node_modules/*
+tokens/*
+files_to_share/*
