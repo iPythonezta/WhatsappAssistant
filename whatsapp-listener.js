@@ -1,6 +1,7 @@
 import venom from 'venom-bot';
 import {generateResponse, createEmptyChat, chatWithAI} from './GeminiHandler.js';
 import { listDir, readFile } from './tools.js';
+import fs from 'fs';
 
 venom.create({
     session: 'hzs-test-bot',
@@ -15,19 +16,85 @@ venom.create({
 const AIChats = new Object();
 const IgnoredConvos = new Set();
 
+const groupMsgs = new Object();
+const loreCount = new Object();
+
 const start = (client) => {
     console.log('Client created successfully!');
 
     client.onMessage(async (message) => {
-        if (!message.body || message.body.trim() == '' || IgnoredConvos.has(message.from) || message.isGroupMsg === true) return;
-
-        const trimmedBody = message.body.trim();
+        if (!message.body || message.body.trim() == '' || IgnoredConvos.has(message.from)) return;
         let response;
         let chat;
+        if (message.isGroupMsg === true){
+
+            console.log(message);
+            console.log("Group message received:", message.body);
+            console.log("Group Name:", message.groupInfo.name);
+            const groupName = message.groupInfo.name;
+            const senderName = message.sender.name !== '' ? message.sender.name : message.sender.pushname;
+
+            if (!groupMsgs.hasOwnProperty(groupName) || !loreCount.hasOwnProperty(groupName)){
+                groupMsgs[groupName] = [];
+                loreCount[groupName] = 1;
+            }
+
+            if (message.body.trim() !== ""){
+                groupMsgs[groupName].push({
+                    sender: senderName,
+                    body: message.body.trim(),
+                    timestamp: message.timestamp
+                })
+            }
+
+            if (groupMsgs[groupName].length > (loreCount[groupName] * 10)){
+                console.log(`Group ${groupName} has more than 10 messages, Documenting lore...`);
+                let compiledMsgs = "";
+                for (let msg of groupMsgs[groupName]){
+                    compiledMsgs += `${msg.sender}: ${msg.body}\n - Sent At: ${msg.timestamp}\n`
+                }
+                const prompt =  `
+                   You are Huzaifa's personal assistant. Huzaifa is part of several active and chaotic WhatsApp groups, each with its own inside jokes, events, and drama. He often struggles to keep up with the context and ongoing "lore" of these groups.
+
+                    Your task is to analyze the messages from the group "${groupName}" and write a detailed Group Lore Summary. This summary should:
+
+                    - Capture all important events, jokes, or turning points in the conversation.
+                    - Include exact quotes of any iconic or noteworthy messages.
+                    - Highlight any funny, dramatic, or recurring themes.
+                    - Mention key people involved and how the conversation evolved.
+                    - Feel like a retelling of a story that someone who missed the group could read to get fully caught up.
+
+                    Here are the group messages:
+                    ${compiledMsgs}
+                `
+
+                const response = await generateResponse(prompt);
+                fs.writeFileSync(`group_lores/lore_${groupName}[1-${loreCount[groupName] * 30}].txt`, response, 'utf8');
+                loreCount[groupName] += 1;
+            }
+
+            return;
+        }
+
+        const trimmedBody = message.body.trim();
+
+        if (trimmedBody === "!ignore" || trimmedBody === "/ignore"){
+            IgnoredConvos.add(message.from);
+            await client.sendText(message.from, "You have been ignored. I won't respond to your messages anymore.");
+            console.log(`Conversation with ${message.from} has been ignored.`);
+        }
+
+        else if (trimmedBody === "!unignore" || trimmedBody === "/unignore"){
+            IgnoredConvos.delete(message.from);
+            await client.sendText(message.from, "You have been unignored. I will respond to your messages again.");
+            console.log(`Conversation with ${message.from} has been unignored.`);
+        }
+
         if (AIChats.hasOwnProperty(message.from)) {
             chat = AIChats[message.from];
             response = await chatWithAI(chat, trimmedBody);
         }
+        
         else {
             chat = createEmptyChat();
             AIChats[message.from] = chat;
@@ -91,7 +158,11 @@ const start = (client) => {
     
                     case "ignore_convo_hard":
                         IgnoredConvos.add(message.from);
-                        delete AIChats[message.from];
+                        await client.sendText(message.from, `
+                            The assistant has permanently ignored this conversation.
+                            It will not respond to any future messages from you.
+                            If you want it to unignore, send "!unignore" or "/unignore".
+                        `);
                         returned = true;
                         break;
     
