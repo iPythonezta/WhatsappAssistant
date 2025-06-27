@@ -1,13 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
-import fs from "fs";
+import { readFile } from "./tools.js";
 
 const api_key = "AIzaSyDmkcDD3XI15Xf1yalmbGPVDwIcVxIoW0w";
 const ai = new GoogleGenAI({
     apiKey: api_key,
 })
 
-const SysPrompt = fs.readFileSync("prompt.txt", "utf-8");
-console.log(SysPrompt);
+let SysPrompt = readFile("prompt.txt");
+SysPrompt += `Available Stickers: \n ${readFile("stickers.csv")}`;
 
 async function generateResponse(prompt){
     const response = await ai.models.generateContent({

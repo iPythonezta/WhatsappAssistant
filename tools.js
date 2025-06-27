@@ -17,6 +17,11 @@ const listDir = (path) => {
     return files;   
 }
 
+const readFile = (path) => {
+    const fileContent = fs.readFileSync(path, "utf-8");
+    return fileContent;
+}
+
 const main = () => {
     const files_path = "files_to_share"
     const files = listDir(files_path);
@@ -27,4 +32,4 @@ const main = () => {
 
 main();
 
-export {listDir}
+export {listDir, readFile};
