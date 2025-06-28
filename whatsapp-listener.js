@@ -1,7 +1,8 @@
 import venom from 'venom-bot';
 import {generateResponse, createEmptyChat, chatWithAI} from './GeminiHandler.js';
-import { listDir, readFile } from './tools.js';
+import { listDir, readFile, loadGroupStats } from './tools.js';
 import fs from 'fs';
+import mime from 'mime-types';
 
 venom.create({
     session: 'hzs-test-bot',
@@ -13,17 +14,69 @@ venom.create({
     console.error('Error creating Venom client:', error);
 });
 
+// ------------------------------------------------------------ COnfig Varaible Start ------------------------------------------------------------ //
+
+
+const loreMsgsNo = 3 // Will document the lore after this no of msg have been sent to the group
+
+const returnLorePrompt = (groupName, compiledMsgs) => {
+
+        const lorePrompt =  `
+            You are Huzaifa's personal assistant. Huzaifa is part of several active and chaotic WhatsApp groups, each with its own inside jokes, events, and drama. He often struggles to keep up with the context and ongoing "lore" of these groups.
+        
+            Your task is to analyze the messages from the group "${groupName}" and write a detailed Group Lore Summary. This summary should:
+        
+            - Capture all important events, jokes, or turning points in the conversation.
+            - Include exact quotes of any iconic or noteworthy messages.
+            - Highlight any funny, dramatic, or recurring themes.
+            - Mention key people involved and how the conversation evolved.
+            - Feel like a retelling of a story that someone who missed the group could read to get fully caught up.
+            - Story should be written in a narrative style, without much reflection from your side, must not contain any
+            headings or subheadings, and should be written in a way that it feels like a story. Just 2-3 paragraphs at max.
+
+
+            Here are the group messages:
+            ${compiledMsgs}
+        `
+        return lorePrompt;
+}
+
+const statsUpdateMsgs = 1; // How many messages before updating stats file
+const statsResetDays = 7; // How many days before resetting stats
+
+// ------------------------------------------------------------ COnfig Varaible End ------------------------------------------------------------ //
+
 const AIChats = new Object();
 const IgnoredConvos = new Set();
 
 const groupMsgs = new Object();
 const loreCount = new Object();
 
+let stats = [];
+const statsObj = new Object();
+
 const start = (client) => {
     console.log('Client created successfully!');
+    
+    stats = loadGroupStats("group_stats/group_stats.json");
+
+    for (let stat of stats) {
+        const groupName = stat.group_name;
+        if (new Date(stat.lastReset) < new Date(Date.now() - 24 * 60 * 60 * statsResetDays)){
+            // Resetting stats every week
+            fs.writeFileSync(`group_stats/Backup/${groupName}-${new Date.now()}-reset-backup.json`, JSON.stringify(stat));
+            console.log(`Resetting stats for group ${groupName}...`);
+            stat.totalMessages = 0;
+            stat.memberStats = {};
+            stat.lastReset = new Date().toISOString();
+        }
+        statsObj[groupName] = stat;
+    }
+    
+    let statsUpdates = 0; // To update stats every X messages
 
     client.onMessage(async (message) => {
-        if (!message.body || message.body.trim() == '' || IgnoredConvos.has(message.from)) return;
+        if (!message.body || message.body.trim() == '' ) return;
         let response;
         let chat;
         if (message.isGroupMsg === true){
@@ -34,6 +87,49 @@ const start = (client) => {
             const groupName = message.groupInfo.name;
             const senderName = message.sender.name !== '' ? message.sender.name : message.sender.pushname;
 
+            if (!statsObj.hasOwnProperty(groupName)){
+                console.log(`Group ${groupName} not found in stats, creating new entry...`);
+                statsObj[groupName] = {
+                    group_name: groupName,
+                    totalMessages: 0,
+                    memberStats: {},
+                    lastReset: new Date().toISOString(),
+                };
+            }
+
+            statsObj[groupName].totalMessages += 1;
+            statsObj[groupName].memberStats[senderName] = (statsObj[groupName].memberStats[senderName] || 0) + 1;
+            statsUpdates += 1;
+
+            if (statsUpdates >= statsUpdateMsgs){
+                console.log("Updating stats file... ");
+                stats = []
+                statsUpdates = 0;
+                for (let group of Object.entries(statsObj)){
+                    console.log(group);
+                    const groupStat = group[1];
+                    console.log(groupStat);
+                    stats.push(groupStat);
+                }
+                console.log(stats)
+                fs.writeFileSync("group_stats/group_stats.json", JSON.stringify(stats));
+            }
+
+            if (message.body.trim().startsWith("/stats")) {
+                
+                let statsMessage = `Stats for ${groupName}\n\nLast Reset: ${new Date(statsObj[groupName].lastReset).toLocaleString()}\nTotal Messages: ${statsObj[groupName].totalMessages}\n\nMember Stats:\n`;
+
+                let memberStats = statsObj[groupName].memberStats;
+
+                const top5 = Object.entries(memberStats)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([name, count]) => `${name}: ${count} messages\n`);
+
+                statsMessage += top5.join('');
+                await client.sendText(message.groupInfo.id, statsMessage)
+            }
+
             if (!groupMsgs.hasOwnProperty(groupName) || !loreCount.hasOwnProperty(groupName)){
                 groupMsgs[groupName] = [];
                 loreCount[groupName] = 1;
@@ -43,32 +139,19 @@ const start = (client) => {
                 groupMsgs[groupName].push({
                     sender: senderName,
                     body: message.body.trim(),
-                    timestamp: message.timestamp
+                    timestamp: new Date(message.timestamp * 1000).toISOString()
                 })
             }
 
-            if (groupMsgs[groupName].length > (loreCount[groupName] * 10)){
-                console.log(`Group ${groupName} has more than 10 messages, Documenting lore...`);
+            if (groupMsgs[groupName].length > (loreCount[groupName] * loreMsgsNo)) {
+                console.log(`Group ${groupName} has more than ${loreMsgsNo} messages, Documenting lore...`);
                 let compiledMsgs = "";
                 for (let msg of groupMsgs[groupName]){
                     compiledMsgs += `${msg.sender}: ${msg.body}\n - Sent At: ${msg.timestamp}\n`
                 }
-                const prompt =  `
-                   You are Huzaifa's personal assistant. Huzaifa is part of several active and chaotic WhatsApp groups, each with its own inside jokes, events, and drama. He often struggles to keep up with the context and ongoing "lore" of these groups.
+                
 
-                    Your task is to analyze the messages from the group "${groupName}" and write a detailed Group Lore Summary. This summary should:
-
-                    - Capture all important events, jokes, or turning points in the conversation.
-                    - Include exact quotes of any iconic or noteworthy messages.
-                    - Highlight any funny, dramatic, or recurring themes.
-                    - Mention key people involved and how the conversation evolved.
-                    - Feel like a retelling of a story that someone who missed the group could read to get fully caught up.
-
-                    Here are the group messages:
-                    ${compiledMsgs}
-                `
-
-                const response = await generateResponse(prompt);
+                const response = await generateResponse(returnLorePrompt(groupName, compiledMsgs));
                 fs.writeFileSync(`group_lores/lore_${groupName}[1-${loreCount[groupName] * 30}].txt`, response, 'utf8');
                 loreCount[groupName] += 1;
             }
@@ -88,6 +171,10 @@ const start = (client) => {
             IgnoredConvos.delete(message.from);
             await client.sendText(message.from, "You have been unignored. I will respond to your messages again.");
             console.log(`Conversation with ${message.from} has been unignored.`);
+        }
+
+        if (IgnoredConvos.has(message.from)) {
+            return;
         }
 
         if (AIChats.hasOwnProperty(message.from)) {

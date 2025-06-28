@@ -22,14 +22,27 @@ const readFile = (path) => {
     return fileContent;
 }
 
+const loadGroupStats = (path) => {
+    if (fs.existsSync(path)){
+        const fileContent = readFile(path);
+        const json = JSON.parse(fileContent);
+        return json;
+    }
+    else {
+        fs.writeFileSync(path, "[]");
+        return [];
+    }
+}
+
 const main = () => {
     const files_path = "files_to_share"
     const files = listDir(files_path);
     files.forEach((file)=>{
         console.log(`File: ${file}`);
     });
+    loadGroupStats("group_stats/group_stats.json");
 }
 
 main();
 
-export {listDir, readFile};
+export {listDir, readFile, loadGroupStats};
