@@ -150,6 +150,11 @@ WhatsappAssistant/
 - **API Key**: Keep your Gemini API key secure and private
 - **Group Data**: Statistics and lore are stored locally only
 
+# Demo 
+
+https://github.com/user-attachments/assets/5b77b8ca-ddc1-4a80-9b49-106e97030b4c
+
+
 ## Contributing
 
 1. Fork the repository
