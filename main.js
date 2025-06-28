@@ -2,7 +2,6 @@ import venom from 'venom-bot';
 import {generateResponse, createEmptyChat, chatWithAI} from './GeminiHandler.js';
 import { listDir, readFile, loadGroupStats } from './tools.js';
 import fs from 'fs';
-import mime from 'mime-types';
 
 venom.create({
     session: 'hzs-test-bot',
@@ -64,7 +63,9 @@ const start = (client) => {
         const groupName = stat.group_name;
         if (new Date(stat.lastReset) < new Date(Date.now() - 24 * 60 * 60 * statsResetDays)){
             // Resetting stats every week
-            fs.writeFileSync(`group_stats/Backup/${groupName}-${new Date.now()}-reset-backup.json`, JSON.stringify(stat));
+            const timestamp = new Date().toString().replace(/[:]/g, '-'); // replace ':' to avoid file errors
+            const fileName = `${groupName}-${timestamp}-reset-backup.json`;
+            fs.writeFileSync(`group_stats/Backup/${fileName}`, JSON.stringify(stat));
             console.log(`Resetting stats for group ${groupName}...`);
             stat.totalMessages = 0;
             stat.memberStats = {};
@@ -106,12 +107,9 @@ const start = (client) => {
                 stats = []
                 statsUpdates = 0;
                 for (let group of Object.entries(statsObj)){
-                    console.log(group);
                     const groupStat = group[1];
-                    console.log(groupStat);
                     stats.push(groupStat);
                 }
-                console.log(stats)
                 fs.writeFileSync("group_stats/group_stats.json", JSON.stringify(stats));
             }
 
@@ -164,13 +162,11 @@ const start = (client) => {
         if (trimmedBody === "!ignore" || trimmedBody === "/ignore"){
             IgnoredConvos.add(message.from);
             await client.sendText(message.from, "You have been ignored. I won't respond to your messages anymore.");
-            console.log(`Conversation with ${message.from} has been ignored.`);
         }
 
         else if (trimmedBody === "!unignore" || trimmedBody === "/unignore"){
             IgnoredConvos.delete(message.from);
             await client.sendText(message.from, "You have been unignored. I will respond to your messages again.");
-            console.log(`Conversation with ${message.from} has been unignored.`);
         }
 
         if (IgnoredConvos.has(message.from)) {
@@ -189,7 +185,6 @@ const start = (client) => {
             response = await chatWithAI(chat, firstMsg);
         }
 
-        console.log("Response:", response);
 
         response = response.replace("```json\n", "").replace("```", "");
 

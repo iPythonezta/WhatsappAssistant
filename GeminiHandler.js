@@ -2,7 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { readFile } from "./tools.js";
 import fs from "fs";
 
-const api_key = "AIzaSyDmkcDD3XI15Xf1yalmbGPVDwIcVxIoW0w";
+const api_key = "YOUR_API_KEY_HERE"; // Replace with your actual API key
 const ai = new GoogleGenAI({
     apiKey: api_key,
 })
@@ -19,7 +19,7 @@ else {
     throw new Error("No prompt file found! Please create either 'prompt.txt' or 'public_prompt.txt'.");
 }
 
-SysPrompt += `Available Stickers: \n ${readFile("stickers.csv")}`;
+SysPrompt += `Available Stickers: \n ${readFile("assets\\stickers.csv")}`;
 
 async function generateResponse(prompt){
     const response = await ai.models.generateContent({
