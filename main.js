@@ -14,7 +14,7 @@ venom.create({
     console.error('Error creating Venom client:', error);
 });
 
-// ------------------------------------------------------------ COnfig Varaible Start ------------------------------------------------------------ //
+// ------------------------------------------------------------ Config Varaible Start ------------------------------------------------------------ //
 
 
 const loreMsgsNo = 3 // Will document the lore after this no of msg have been sent to the group
@@ -44,7 +44,7 @@ const returnLorePrompt = (groupName, compiledMsgs) => {
 const statsUpdateMsgs = 1; // How many messages before updating stats file
 const statsResetDays = 7; // How many days before resetting stats
 
-// ------------------------------------------------------------ COnfig Varaible End ------------------------------------------------------------ //
+// ------------------------------------------------------------ Config Varaible End ------------------------------------------------------------ //
 
 const AIChats = new Object();
 const IgnoredConvos = new Set();
@@ -269,7 +269,7 @@ const start = (client) => {
                         returned = true;
                         break;
                     case  "get_available_stickers":
-                        const data = readFile("stickers.csv");
+                        const data = readFile("assets\\stickers.csv");
                         chat = AIChats[message.from];
                         response = await chatWithAI(chat, `Here are the available stickers:\n${data}`);
                         response = response.replace("```json\n", "").replace("```", "");

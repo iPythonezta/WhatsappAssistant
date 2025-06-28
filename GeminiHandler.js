@@ -9,11 +9,11 @@ const ai = new GoogleGenAI({
 
 let SysPrompt= '';
 
-if (fs.existsSync("prompt.txt")) {
-    SysPrompt = readFile("prompt.txt"); // Custom prompt file -- Overrides the public one
+if (fs.existsSync("assets\\prompt.txt")) {
+    SysPrompt = readFile("assets\\prompt.txt"); // Custom prompt file -- Overrides the public one
 }
-else if (fs.existsSync("public_prompt.txt")) {
-    SysPrompt = readFile("public_prompt.txt");
+else if (fs.existsSync("assets\\public_prompt.txt")) {
+    SysPrompt = readFile("assets\\public_prompt.txt");
 }
 else {
     throw new Error("No prompt file found! Please create either 'prompt.txt' or 'public_prompt.txt'.");
