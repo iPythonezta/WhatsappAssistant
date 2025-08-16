@@ -4,13 +4,13 @@ An intelligent WhatsApp bot powered by Google's Gemini AI that can manage group 
 
 ## Features
 
-- 🤖 **AI-Powered Responses**: Uses Google Gemini AI for intelligent conversations
-- 📊 **Group Statistics**: Tracks message counts and member activity
-- 📖 **Lore Documentation**: Automatically summarizes group conversations
-- 📁 **File Sharing**: Share files from a designated directory
-- 🎭 **Sticker Support**: Send custom stickers based on context
-- 🔇 **Ignore System**: Ignore/unignore specific conversations
-- ⚙️ **Configurable**: Easy configuration through JSON files
+- **AI-Powered Responses**: Uses Google Gemini AI for intelligent conversations
+- **Group Statistics**: Tracks message counts and member activity
+- **Lore Documentation**: Automatically summarizes group conversations
+- **File Sharing**: Share files from a designated directory
+- **Sticker Support**: Send custom stickers based on context
+- **Ignore System**: Ignore/unignore specific conversations
+- **Configurable**: Easy configuration through JSON files
 
 ## Installation
 
