@@ -89,24 +89,6 @@ npm install -g whatsapp-ai-assistant
 #### Group Commands
 - `/stats` - Show group statistics (message counts, top contributors)
 
-## Project Structure
-
-After initialization, your project will have this structure:
-
-```
-my-bot/
-├── config.json          # Bot configuration
-├── package.json          # Project metadata
-├── assets/              # Bot assets
-│   ├── public_prompt.txt # AI system prompt
-│   └── stickers.csv     # Available stickers list
-├── files_to_share/      # Files the bot can share
-├── stickers/            # Custom sticker images
-├── group_stats/         # Group statistics data
-│   └── Backup/         # Stats backups
-└── group_lores/         # Generated group lore summaries
-```
-
 ## Customization
 
 ### AI Prompt
