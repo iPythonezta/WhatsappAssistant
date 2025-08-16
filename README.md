@@ -1,192 +1,193 @@
-# WhatsApp Assistant Bot 🤖
+# WhatsApp AI Assistant
 
-A sophisticated WhatsApp bot powered by Google's Gemini AI that acts as my personal assistant. The bot can handle individual conversations, track group statistics, document group "lore", share files, send stickers, and more!
-
-## About the Project
-
-Managing multiple WhatsApp conversations and staying on top of group dynamics can be overwhelming, especially when juggling academic life, work, and social interactions. This WhatsApp Assistant Bot was created to solve the common problem of missing important messages, losing track of group conversations, and the tedious task of manually sharing files with friends and colleagues. 
-
-The bot serves as an intelligent intermediary that can handle routine tasks like sharing study materials, tracking group activity patterns, and most uniquely - automatically documenting the "lore" or important moments in group chats that often get lost in the constant stream of messages. Whether it's remembering who said what during an important discussion, keeping track of inside jokes, or simply providing quick access to shared resources, this assistant ensures nothing important slips through the cracks while maintaining the casual, friendly vibe that makes WhatsApp conversations enjoyable.
+An intelligent WhatsApp bot powered by Google's Gemini AI that can manage group statistics, document conversation lore, share files, send stickers, and provide AI-powered responses.
 
 ## Features
 
-### AI-Powered Conversations
-- **Gemini 2.0 Flash Integration**: Natural conversations with Google's latest AI model
-- **Contextual Memory**: Maintains conversation history for each user
-- **Personality**: Sarcastic, tech-savvy student vibe with casual, unfiltered responses
-- **Smart Responses**: JSON-based action system for complex interactions
+- 🤖 **AI-Powered Responses**: Uses Google Gemini AI for intelligent conversations
+- 📊 **Group Statistics**: Tracks message counts and member activity
+- 📖 **Lore Documentation**: Automatically summarizes group conversations
+- 📁 **File Sharing**: Share files from a designated directory
+- 🎭 **Sticker Support**: Send custom stickers based on context
+- 🔇 **Ignore System**: Ignore/unignore specific conversations
+- ⚙️ **Configurable**: Easy configuration through JSON files
 
-### Group Analytics
-- **Message Statistics**: Tracks total messages and per-member stats
-- **Auto-Reset**: Weekly statistics reset with backup creation
-- **Top Contributors**: `/stats` command shows top 5 most active members
-- **Real-time Updates**: Live statistics tracking
+## Installation
 
-### Group Lore Documentation
-- **Automatic Lore Creation**: Documents important group conversations
-- **Smart Triggers**: Creates lore summaries after every 3 messages (configurable)
-- **Narrative Style**: AI-generated storytelling of group events and inside jokes
-- **File Storage**: Saves lore as timestamped text files
-
-### File Sharing System
-- **Dynamic File Access**: Can list and share files from the `files_to_share` directory
-- **Smart File Discovery**: AI determines which files to share based on user requests
-- **Multiple File Support**: Can send multiple files in a single response
-
-### Sticker Support
-- **Sticker Library**: Curated collection of reaction stickers
-- **Context-Aware**: AI chooses appropriate stickers for conversations
-- **CSV Management**: Sticker metadata managed via CSV file
-
-### Conversation Management
-- **Ignore System**: Users can ignore/unignore the bot with commands
-- **Hard Ignore**: Permanent ignore for persistent users
-- **Selective Responses**: Bot intelligently chooses when to respond
+```bash
+npm install -g whatsapp-ai-assistant
+```
 
 ## Quick Start
 
-### Prerequisites
-- Node.js (v14 or higher)
-- Google Gemini API key
-- WhatsApp account for bot session
-
-### Installation
-
-1. **Clone the repository**
+1. **Initialize a new bot project**:
    ```bash
-   git clone <repository-url>
-   cd WhatsappAssistant
+   whatsapp-assistant init my-bot
+   cd my-bot
    ```
 
-2. **Install dependencies**
+2. **Configure your bot**:
    ```bash
-   npm install
+   whatsapp-assistant config
+   ```
+   Or manually edit `config.json`:
+   ```json
+   {
+     "apiKey": "your-gemini-api-key-here",
+     "sessionName": "my-whatsapp-bot",
+     "headless": false,
+     "loreMsgsNo": 3,
+     "statsUpdateMsgs": 1,
+     "statsResetDays": 7
+   }
    ```
 
-3. **Set up your Gemini API key**
-   - Edit `GeminiHandler.js` and replace the API key with your own
-   - Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+3. **Add your content**:
+   - Place files to share in the `files_to_share/` directory
+   - Add custom stickers to the `stickers/` directory
+   - Customize the AI prompt in `assets/public_prompt.txt`
 
-4. **Configure the bot personality**
-   - Create `assets/prompt.txt` for custom personality (private)
-   - Or use the default `assets/public_prompt.txt`
-
-5. **Add files to share**
-   - Place files you want the bot to share in the `files_to_share/` directory
-
-6. **Add stickers**
-   - Place sticker images in the `stickers/` directory
-   - Update `assets/stickers.csv` with sticker metadata
-
-7. **Run the bot**
+4. **Start your bot**:
    ```bash
-   node main.js
+   whatsapp-assistant start
    ```
-
-8. **First-time setup**
-   - A browser window will open for WhatsApp Web
-   - Scan the QR code with your WhatsApp
-   - The bot session will be saved for future use
-
-## Usage
-
-### Individual Conversations
-- Simply message the bot directly
-- Use `!ignore` or `/ignore` to stop the bot from responding
-- Use `!unignore` or `/unignore` to re-enable responses
-
-### Group Features
-- **Statistics**: Send `/stats` in a group to see message statistics
-- **Auto-Lore**: The bot automatically documents interesting group conversations
-- **File Requests**: Ask the bot for specific files (e.g., "Can you send me the workshop notes?")
-
-### Bot Commands
-| Command | Description |
-|---------|-------------|
-| `/stats` | Show group message statistics |
-| `!ignore` / `/ignore` | Stop bot responses |
-| `!unignore` / `/unignore` | Re-enable bot responses |
 
 ## Configuration
 
-### Main Configuration (`main.js`)
-```javascript
-const loreMsgsNo = 3;        // Messages before documenting lore
-const statsUpdateMsgs = 1;   // Messages before updating stats
-const statsResetDays = 7;    // Days before resetting stats
+### config.json Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `apiKey` | Your Google Gemini API key | Required |
+| `sessionName` | WhatsApp session name | "whatsapp-assistant" |
+| `headless` | Run browser in headless mode | false |
+| `loreMsgsNo` | Messages before documenting lore | 3 |
+| `statsUpdateMsgs` | Messages before updating stats | 1 |
+| `statsResetDays` | Days before resetting stats | 7 |
+
+### Getting a Gemini API Key
+
+1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Sign in with your Google account
+3. Create a new API key
+4. Copy the key and add it to your `config.json`
+
+## Commands
+
+### CLI Commands
+
+- `whatsapp-assistant init [directory]` - Initialize a new bot project
+- `whatsapp-assistant start [-c config.json]` - Start the bot
+- `whatsapp-assistant config` - Interactive configuration
+
+### WhatsApp Commands
+
+#### Private Message Commands
+- `!ignore` or `/ignore` - Bot will ignore your messages
+- `!unignore` or `/unignore` - Bot will respond to your messages again
+
+#### Group Commands
+- `/stats` - Show group statistics (message counts, top contributors)
+
+## Project Structure
+
+After initialization, your project will have this structure:
+
+```
+my-bot/
+├── config.json          # Bot configuration
+├── package.json          # Project metadata
+├── assets/              # Bot assets
+│   ├── public_prompt.txt # AI system prompt
+│   └── stickers.csv     # Available stickers list
+├── files_to_share/      # Files the bot can share
+├── stickers/            # Custom sticker images
+├── group_stats/         # Group statistics data
+│   └── Backup/         # Stats backups
+└── group_lores/         # Generated group lore summaries
 ```
 
-### File Structure
-```
-WhatsappAssistant/
-├── main.js                 # Main bot logic
-├── GeminiHandler.js        # AI integration
-├── tools.js               # Utility functions
-├── package.json           # Dependencies
-├── assets/
-│   ├── prompt.txt         # Custom bot personality (create this)
-│   ├── public_prompt.txt  # Default personality
-│   └── stickers.csv       # Sticker metadata
-├── files_to_share/        # Files bot can share
-├── stickers/             # Sticker images
-├── group_lores/          # Generated group lore files
-├── group_stats/          # Group statistics
-└── tokens/               # WhatsApp session data
-```
+## Customization
 
-## Dependencies
+### AI Prompt
 
-- **venom-bot**: WhatsApp Web automation
-- **@google/genai**: Google Gemini AI integration
-- **puppeteer**: Browser automation
-- **axios**: HTTP requests
-- **mime-types**: File type detection
-- **qs**: Query string utilities
+Edit `assets/public_prompt.txt` to customize how your AI assistant behaves. You can also create `assets/prompt.txt` for a private prompt that overrides the public one.
 
-## Privacy & Security
+### Stickers
 
-- **Local Storage**: All data is stored locally
-- **Session Management**: WhatsApp session is saved securely
-- **API Key**: Keep your Gemini API key secure and private
-- **Group Data**: Statistics and lore are stored locally only
+1. Add image files to the `stickers/` directory
+2. Update `assets/stickers.csv` with the format:
+   ```csv
+   emotion,filename,description
+   happy,smile.png,A happy smiling face
+   sad,cry.png,A crying face
+   ```
 
-# Demo 
+### File Sharing
 
-https://github.com/user-attachments/assets/5b77b8ca-ddc1-4a80-9b49-106e97030b4c
+Place any files you want the bot to be able to share in the `files_to_share/` directory. Users can ask the bot to share these files.
 
+## Features in Detail
 
-## Contributing
+### Group Statistics
+- Tracks message counts per group and member
+- Shows top 5 contributors
+- Automatic periodic resets with backup
+- Use `/stats` command in groups to view
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Lore Documentation
+- Automatically summarizes group conversations
+- Creates narrative-style summaries
+- Configurable message threshold
+- Saved as text files in `group_lores/`
 
-
-## Disclaimer
-
-This bot is for educational and personal use only. Make sure to comply with WhatsApp's Terms of Service and use responsibly. The developers are not responsible for any misuse of this software.
+### AI Actions
+The bot can perform various actions based on AI decisions:
+- Answer questions
+- Share files from the designated directory
+- Send contextual stickers
+- Ignore conversations when appropriate
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Bot not responding**
-   - Check if the conversation is ignored
-   - Verify Gemini API key is valid
-   - Check console for error messages
+1. **"API key not found"**
+   - Make sure you've added your Gemini API key to `config.json`
 
-2. **QR Code issues**
-   - Clear the `tokens/` directory and restart
-   - Ensure WhatsApp Web is accessible
+2. **"Config file not found"**
+   - Run `whatsapp-assistant init` first
+   - Make sure you're in the correct directory
 
-3. **File sharing not working**
-   - Verify files exist in `files_to_share/` directory
-   - Check file permissions
+3. **WhatsApp connection issues**
+   - Try setting `headless: false` in config to see the browser
+   - Clear the session data and restart
 
-4. **Stickers not sending**
-   - Ensure sticker files exist in `stickers/` directory
-   - Verify `stickers.csv` has correct paths
+4. **Permission errors**
+   - Make sure the bot has write permissions in the project directory
 
----
+### Debug Mode
+
+Run with visible browser to debug WhatsApp connection issues:
+```json
+{
+  "headless": false
+}
+```
+
+## Development
+
+To contribute or modify the package:
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Make your changes
+4. Test locally: `npm link`
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Support
+
+For issues and feature requests, please visit the [GitHub repository](https://github.com/iPythonezta/WhatsappAssistant).

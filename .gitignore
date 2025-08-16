@@ -2,3 +2,7 @@ prompt.txt
 node_modules/*
 tokens/*
 files_to_share/*
+
+# Package specific
+package/node_modules/*
+package/templates/assets/prompt.txt
