@@ -14,24 +14,24 @@ An intelligent WhatsApp bot powered by Google's Gemini AI that can manage group 
 
 ## Installation
 
-```bash
+```
 npm install -g whatsapp-ai-assistant
 ```
 
 ## Quick Start
 
 1. **Initialize a new bot project**:
-   ```bash
+   ```
    whatsapp-assistant init my-bot
    cd my-bot
    ```
 
 2. **Configure your bot**:
-   ```bash
+   ```
    whatsapp-assistant config
    ```
    Or manually edit `config.json`:
-   ```json
+   ```
    {
      "apiKey": "your-gemini-api-key-here",
      "sessionName": "my-whatsapp-bot",
@@ -48,7 +48,7 @@ npm install -g whatsapp-ai-assistant
    - Customize the AI prompt in `assets/public_prompt.txt`
 
 4. **Start your bot**:
-   ```bash
+   ```
    whatsapp-assistant start
    ```
 
@@ -147,47 +147,3 @@ The bot can perform various actions based on AI decisions:
 - Share files from the designated directory
 - Send contextual stickers
 - Ignore conversations when appropriate
-
-## Troubleshooting
-
-### Common Issues
-
-1. **"API key not found"**
-   - Make sure you've added your Gemini API key to `config.json`
-
-2. **"Config file not found"**
-   - Run `whatsapp-assistant init` first
-   - Make sure you're in the correct directory
-
-3. **WhatsApp connection issues**
-   - Try setting `headless: false` in config to see the browser
-   - Clear the session data and restart
-
-4. **Permission errors**
-   - Make sure the bot has write permissions in the project directory
-
-### Debug Mode
-
-Run with visible browser to debug WhatsApp connection issues:
-```json
-{
-  "headless": false
-}
-```
-
-## Development
-
-To contribute or modify the package:
-
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Make your changes
-4. Test locally: `npm link`
-
-## License
-
-MIT License - see LICENSE file for details.
-
-## Support
-
-For issues and feature requests, please visit the [GitHub repository](https://github.com/iPythonezta/WhatsappAssistant).
